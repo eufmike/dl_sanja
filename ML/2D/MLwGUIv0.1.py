@@ -18,7 +18,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import time
 from scipy import fftpack, ndimage, misc, signal
 from scipy.ndimage.interpolation import shift
-from scipy.misc import imrotate
+# from scipy.misc import imrotate
 from skimage import restoration,color
 from skimage.io import imsave, imread
 from skimage.transform import resize
