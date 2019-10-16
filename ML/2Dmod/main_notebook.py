@@ -46,7 +46,12 @@ img_x, img_y = img_1.shape
 print('height(x) frame size: {}'.format(img_x))
 print('width(y) frame size: {}'.format(img_y))
 
+# crop the data randomly
 imgs_crop = random_crop([img_1, label_1_arrary], [256, 256])
+
+img_1_crop = imgs_crop[0]
+label_1_crop = imgs_crop[1]
+
 fig, (ax1, ax2) = plt.subplots(nrows=2)
 ax1.imshow(imgs_crop[0], cmap='gray')
 ax2.imshow(imgs_crop[1], vmin=0, vmax=1)
@@ -65,5 +70,13 @@ if not 'prepdata' in os.listdir(data_path):
 # Batch Random Crop
 ipfolder = os.path.join(data_path, 'data')
 opfolder = os.path.join(data_path, 'prepdata')
-random_crop_batch(ipfolder, opfolder, [256, 256], 10)
+random_crop_batch(ipfolder, opfolder, [256, 256], 10, 100)
+
+#%% [markdown]
+# # Data Augmentation
+#%%
+# create data generator
+datagen = ImageDataGenerator()
+
+#%%
 

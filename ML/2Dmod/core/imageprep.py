@@ -4,15 +4,30 @@ import uuid
 from skimage.io import imread, imsave, imshow
 from PIL import Image, ImageTk
 
-def random_crop(imgs, random_range):
+def random_crop(imgs, random_range, seed=None):
     # Note: image_data_format is 'channel_last'
     # assert img.shape[2] == 3
     height, width = imgs[0].shape
+    
+    range_low = random_range[0]
+    range_high = random_range[1] + 1
 
-    dx = np.random.random_integers(random_range[0], random_range[1])
-    dy = np.random.random_integers(random_range[0], random_range[1])
-    x = np.random.randint(0, width - dx + 1)
-    y = np.random.randint(0, height - dy + 1)
+    if seed is not None:    
+        np.random.seed(seed + 10)
+        dx = np.random.randint(range_low, range_high)
+        np.random.seed(seed + 10 + 1)
+        dy = np.random.randint(range_low, range_high)
+        
+        np.random.seed(seed + 20)
+        x = np.random.randint(0, width - dx + 1)
+        np.random.seed(seed + 20 + 1)
+        y = np.random.randint(0, height - dy + 1)
+       
+    else:
+        dx = np.random.randint(range_low, range_high)
+        dy = np.random.randint(range_low, range_high)
+        x = np.random.randint(0, width - dx + 1)
+        y = np.random.randint(0, height - dy + 1)
     
     imgs_crop = []
     for img in imgs: 
@@ -31,25 +46,46 @@ def crop_generator(batches, crop_length):
             batch_crops[i] = random_crop(batch_x[i], (crop_length, crop_length))
         yield (batch_crops, batch_y)
 
-def random_crop_batch(ipfolder, opfolder, random_size_range, crop_per_image):
+def random_crop_batch(ipfolder, opfolder, random_size_range, crop_per_image, seed=None):
+    '''
+    Takes images in the input folder("ipfolder") and randomly crop the images in batch, and 
+    save to the output folder("opfolder"). The range of cropping size can be defined by 
+    "random_size_range". "crop_per_image" defines the amount of images generated from 
+    each inputs. 
+    '''
+    
+    # create the file list
     imglist = glob.glob(os.path.join(ipfolder, 'images', '*', '*.tif'), recursive=True)
     labellist = glob.glob(os.path.join(ipfolder, 'labels', '*', '*.tif'), recursive=True)
-    print(imglist)
-    print(labellist)
+    print('First 5 filenames')
+    print(imglist[:5])
+    print('First 5 filenames')
+    print(labellist[:5])
 
+    id_count = 1
+
+    # iterate through each files
     for idx, imgpath in enumerate(imglist): 
+        # load the raw images
         img_tmp = imread(imglist[idx])
+
+        # load the labeled images
         label_tmp = Image.open(labellist[idx])
         label_tmp_array = np.array(label_tmp)    
         
         for i in range(crop_per_image):
-            imgs_crop = random_crop([img_tmp, label_tmp_array], [256, 256])
+            # crop the image by a give value
+            imgs_crop = random_crop([img_tmp, label_tmp_array], [256, 256], seed=seed)
         
             img_crop = Image.fromarray(imgs_crop[0])
             label_crop = Image.fromarray(imgs_crop[1])
-        
-            temp_id = uuid.uuid4()
-        
-            img_crop.save(os.path.join(opfolder, 'images', temp_id.hex + '.tif'))
-            label_crop.save(os.path.join(opfolder, 'labels', temp_id.hex + '.tif'))
 
+            id_name = str(id_count)
+            img_crop.save(os.path.join(opfolder, 'images', id_name.zfill(4) + '.tif'))
+            label_crop.save(os.path.join(opfolder, 'labels', id_name.zfill(4) + '.tif'))
+
+            if seed is not None:
+                seed += 1
+            
+            id_count += 1
+        
