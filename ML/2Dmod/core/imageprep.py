@@ -1,5 +1,8 @@
 import os, glob
 import numpy as np
+import uuid
+from skimage.io import imread, imsave, imshow
+from PIL import Image, ImageTk
 
 def random_crop(imgs, random_range):
     # Note: image_data_format is 'channel_last'
@@ -27,4 +30,26 @@ def crop_generator(batches, crop_length):
         for i in range(batch_x.shape[0]):
             batch_crops[i] = random_crop(batch_x[i], (crop_length, crop_length))
         yield (batch_crops, batch_y)
+
+def random_crop_batch(ipfolder, opfolder, random_size_range, crop_per_image):
+    imglist = glob.glob(os.path.join(ipfolder, 'images', '*', '*.tif'), recursive=True)
+    labellist = glob.glob(os.path.join(ipfolder, 'labels', '*', '*.tif'), recursive=True)
+    print(imglist)
+    print(labellist)
+
+    for idx, imgpath in enumerate(imglist): 
+        img_tmp = imread(imglist[idx])
+        label_tmp = Image.open(labellist[idx])
+        label_tmp_array = np.array(label_tmp)    
+        
+        for i in range(crop_per_image):
+            imgs_crop = random_crop([img_tmp, label_tmp_array], [256, 256])
+        
+            img_crop = Image.fromarray(imgs_crop[0])
+            label_crop = Image.fromarray(imgs_crop[1])
+        
+            temp_id = uuid.uuid4()
+        
+            img_crop.save(os.path.join(opfolder, 'images', temp_id.hex + '.tif'))
+            label_crop.save(os.path.join(opfolder, 'labels', temp_id.hex + '.tif'))
 
