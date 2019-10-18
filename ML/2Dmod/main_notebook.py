@@ -74,9 +74,32 @@ random_crop_batch(ipfolder, opfolder, [256, 256], 10, 100)
 
 #%% [markdown]
 # # Data Augmentation
-#%%
-# create data generator
-datagen = ImageDataGenerator()
 
 #%%
+# test the data augmentation
+img = img_1_crop
+print(img.shape)
+samples = np.expand_dims(img, 2)
+print(samples.shape)
+samples_new = np.reshape(samples, [1, samples.shape[0], samples.shape[1], samples.shape[2]])
+print(samples_new.shape)
+#%%
+datagen = ImageDataGenerator(width_shift_range=0.08)
+#%%
+print(samples_new.shape)
+it = datagen.flow(samples_new, batch_size=1)
+print(it)
 
+#%%
+# generate samples and plot
+rows = 3
+cols = 3
+for i in range(9):
+    batch = it.next()
+    image = batch[0].astype('uint8').reshape(256, 256)
+    plt.subplot(rows, cols, i+1)
+    plt.axis('off')
+    plt.imshow(image, cmap='gray')
+plt.show()
+
+#%%
