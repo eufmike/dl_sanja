@@ -46,7 +46,7 @@ def crop_generator(batches, crop_length):
             batch_crops[i] = random_crop(batch_x[i], (crop_length, crop_length))
         yield (batch_crops, batch_y)
 
-def random_crop_batch(ipfolder, opfolder, random_size_range, crop_per_image, seed=None):
+def random_crop_batch(ipfolder, opfolder, label, random_size_range, crop_per_image, seed=None):
     '''
     Takes images in the input folder("ipfolder") and randomly crop the images in batch, and 
     save to the output folder("opfolder"). The range of cropping size can be defined by 
@@ -81,8 +81,8 @@ def random_crop_batch(ipfolder, opfolder, random_size_range, crop_per_image, see
             label_crop = Image.fromarray(imgs_crop[1])
 
             id_name = str(id_count)
-            img_crop.save(os.path.join(opfolder, 'images', id_name.zfill(4) + '.tif'))
-            label_crop.save(os.path.join(opfolder, 'labels', id_name.zfill(4) + '.tif'))
+            img_crop.save(os.path.join(opfolder, 'images', label, id_name.zfill(4) + '.tif'))
+            label_crop.save(os.path.join(opfolder, 'labels', label, id_name.zfill(4) + '.tif'))
 
             if seed is not None:
                 seed += 1

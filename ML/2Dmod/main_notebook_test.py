@@ -1,4 +1,3 @@
-
 #%%
 # import os, glob, shutil
 import os, sys
@@ -40,10 +39,6 @@ seed = 100
 #%%
 image_datagen = ImageDataGenerator(**data_gen_args)
 label_datagen = ImageDataGenerator(**data_gen_args)
-
-#%%
-inputimage = os.path.join(path, 'images')
-print(inputimage)
 
 #%%
 image_generator = image_datagen.flow_from_directory(
