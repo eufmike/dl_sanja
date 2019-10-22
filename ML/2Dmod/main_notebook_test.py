@@ -35,7 +35,6 @@ data_gen_args = dict(
                 zoom_range=0.2,
                 fill_mode='constant',
                 cval=0.,)
-
 seed = 100
 
 #%%
@@ -48,17 +47,23 @@ print(inputimage)
 
 #%%
 image_generator = image_datagen.flow_from_directory(
-    os.path.join(path, 'data/images/'),
+    os.path.join(path, 'train/images/'),
     class_mode=None,
     seed=seed)
 
 label_generator = label_datagen.flow_from_directory(
-    os.path.join(path, 'data/labels'),
+    os.path.join(path, 'train/labels'),
     class_mode=None,
     seed=seed)
+
+#%% 
+train_generator = zip(image_generator, label_generator)
+
+#%%
 
 #%%
 image_datagen.fit(images, augment=True, seed=seed) 
 mask_datagen.fit(masks, augment=True, seed=seed)
+
 
 #%%

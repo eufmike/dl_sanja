@@ -62,15 +62,26 @@ plt.show()
 
 #%%
 # Create output folder
-if not 'prepdata' in os.listdir(data_path):
-    os.mkdir(os.path.join(data_path, 'prepdata'))
-    os.mkdir(os.path.join(data_path, 'prepdata', 'images'))
-    os.mkdir(os.path.join(data_path, 'prepdata', 'labels'))
 
+if not 'prepdata' in os.listdir(data_path):
+    foldernames = ['train', 'valid', 'test']
+    os.mkdir(os.path.join(data_path, 'prepdata'))
+    for foldername in foldernames:    
+        os.mkdir(os.path.join(data_path, 'prepdata', foldername))
+        foldernames_class = ['images', 'labels']
+        for foldername_class in foldernames_class:
+            os.mkdir(os.path.join(data_path, 'prepdata', foldername, foldername_class))
+        
+
+#%%
 # Batch Random Crop
 ipfolder = os.path.join(data_path, 'data')
-opfolder = os.path.join(data_path, 'prepdata')
-random_crop_batch(ipfolder, opfolder, [256, 256], 10, 100)
+# create train dataset 
+opfolder = os.path.join(data_path, 'prepdata', 'train')
+random_crop_batch(ipfolder, opfolder, [256, 256], 20, 100)
+# create test dataset
+opfolder = os.path.join(data_path, 'prepdata', 'valid')
+random_crop_batch(ipfolder, opfolder, [256, 256], 1, 101)
 
 #%% [markdown]
 # # Data Augmentation
