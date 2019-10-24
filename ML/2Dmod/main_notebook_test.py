@@ -45,22 +45,28 @@ train_image_generator = image_datagen.flow_from_directory(
     os.path.join(path, 'train/images/'),
     class_mode=None,
     color_mode='grayscale',
+    batch_size=32,
     seed=seed)
 
 train_label_generator = label_datagen.flow_from_directory(
     os.path.join(path, 'train/labels'),
     class_mode=None,
     color_mode='grayscale',
+    batch_size=32,
     seed=seed)
 
 valid_image_generator = image_datagen.flow_from_directory(
     os.path.join(path, 'valid/images/'),
     class_mode=None,
+    color_mode='grayscale',
+    batch_size=32,
     seed=seed)
 
 valid_label_generator = label_datagen.flow_from_directory(
     os.path.join(path, 'valid/labels'),
     class_mode=None,
+    color_mode='grayscale',
+    batch_size=32,
     seed=seed)
 
 
@@ -109,6 +115,7 @@ conv1 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer 
 print ("conv1 shape:",conv1.shape)
 conv1 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv1)
 print ("conv1 shape:",conv1.shape)
+
 pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
 print ("pool1 shape:",pool1.shape)
 
@@ -136,23 +143,30 @@ conv5 = Conv2D(1024, 3, activation = 'relu', padding = 'same', kernel_initialize
 drop5 = Dropout(0.5)(conv5)
 
 up6 = Conv2D(512, 2, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(UpSampling2D(size = (2,2))(drop5))
-merge6 = merge([drop4,up6], mode = 'concat', concat_axis = 3)
+# merge6 = merge([drop4,up6], mode = 'concat', concat_axis = 3)
+merge6 = concatenate([drop4,up6])
 
 conv6 = Conv2D(512, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge6)
 conv6 = Conv2D(512, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv6)
 
 up7 = Conv2D(256, 2, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(UpSampling2D(size = (2,2))(conv6))
-merge7 = merge([conv3,up7], mode = 'concat', concat_axis = 3)
+# merge7 = merge([conv3,up7], mode = 'concat', concat_axis = 3)
+merge7 = concatenate([conv3, up7])
+
 conv7 = Conv2D(256, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge7)
 conv7 = Conv2D(256, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv7)
 
 up8 = Conv2D(128, 2, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(UpSampling2D(size = (2,2))(conv7))
-merge8 = merge([conv2,up8], mode = 'concat', concat_axis = 3)
+# merge8 = merge([conv2,up8], mode = 'concat', concat_axis = 3)
+merge8 = concatenate([conv2, up8])
+
 conv8 = Conv2D(128, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge8)
 conv8 = Conv2D(128, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv8)
 
 up9 = Conv2D(64, 2, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(UpSampling2D(size = (2,2))(conv8))
-merge9 = merge([conv1,up9], mode = 'concat', concat_axis = 3)
+# merge9 = merge([conv1,up9], mode = 'concat', concat_axis = 3)
+merge9 = concatenate([conv1, up9])
+
 conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge9)
 conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
 
@@ -165,8 +179,23 @@ model = Model(inputs, o)
 model.outputWidth = outputWidth
 model.outputHeight = outputHeight
 
+
+model.compile(loss="binary_crossentropy", optimizer = Adam(lr = 1e-5) , metrics=['accuracy'] )
 model.summary()
 
 
+#%%
+from keras.callbacks import ModelCheckpoint
+
+batch_size = 32
+checkpointer = ModelCheckpoint('model-test-1.h5', verbose=1, save_best_only=True)
+model.fit_generator(generator=train_generator, 
+                    validation_data = valid_generator, 
+                    validation_steps = 20,
+                    steps_per_epoch = 2000//batch_size,
+                    epochs = 3, 
+                    verbose=1, 
+                    callbacks=[checkpointer]
+                    )
 
 #%%
