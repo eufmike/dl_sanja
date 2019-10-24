@@ -9,7 +9,6 @@ from skimage.io import imread, imsave, imshow
 from PIL import Image, ImageTk
 import matplotlib.pyplot as plt
 from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Model, Sequential
 from core.imageprep import random_crop, crop_generator, random_crop_batch
 from imutils import paths
 import itertools
@@ -24,8 +23,8 @@ print(imgpath[0])
 
 #%%
 data_gen_args = dict(
-                featurewise_center=True,
-                featurewise_std_normalization=True,
+                # featurewise_center=True,
+                # featurewise_std_normalization=True,
                 horizontal_flip=True,
                 vertical_flip=True,
                 rotation_range=90.,
@@ -33,7 +32,7 @@ data_gen_args = dict(
                 height_shift_range=0.1,
                 shear_range=0.07,
                 zoom_range=0.2,
-                fill_mode='constant',
+                # fill_mode='constant',
                 cval=0.,)
 seed = 100
 
@@ -54,18 +53,6 @@ train_label_generator = label_datagen.flow_from_directory(
     color_mode='grayscale',
     seed=seed)
 
-#%%
-rows = 3
-cols = 3
-for i in range(9):
-    batch = train_image_generator.next()
-    image = batch[0].astype('uint8').reshape(256, 256)
-    plt.subplot(rows, cols, i+1)
-    plt.axis('off')
-    plt.imshow(image, cmap='gray')
-plt.show()
-
-#%%
 valid_image_generator = image_datagen.flow_from_directory(
     os.path.join(path, 'valid/images/'),
     class_mode=None,
@@ -76,18 +63,40 @@ valid_label_generator = label_datagen.flow_from_directory(
     class_mode=None,
     seed=seed)
 
-#%%
-
 
 #%% 
 train_generator = zip(train_image_generator, train_label_generator)
 valid_generator = zip(valid_image_generator, valid_label_generator)
 
 #%%
-from keras.layers import Input, merge
-from keras.layers.core import Dropout, Lambda
-from keras.layers.convolutional import Conv2D, Conv2DTranspose
-from keras.layers.pooling import MaxPooling2D
+rows = 1
+cols = 2
+
+for i in range(3):
+    print(i)
+    X, y = train_generator.__next__()
+
+    image_tmp = X[0].reshape(256, 256)
+    plt.subplot(rows, cols, 1)
+    plt.axis('off')
+    plt.imshow(image_tmp, cmap='gray')
+        
+    image_tmp = y[0].reshape(256, 256)
+    plt.subplot(rows, cols, 2)
+    plt.axis('off')
+    plt.imshow(image_tmp)
+    
+    plt.show()
+
+
+#%%
+from keras.models import Model, Sequential
+from keras.layers import Input, concatenate, Conv2D, Conv2DTranspose, merge, Dropout, Flatten, Dense, Activation, Layer, Reshape, Permute, Lambda
+from keras.layers.convolutional import Convolution3D, MaxPooling3D, ZeroPadding3D
+from keras.layers.convolutional import Convolution2D, MaxPooling2D, UpSampling2D, ZeroPadding2D
+from keras.layers.normalization import BatchNormalization
+from keras.optimizers import Adam, Adadelta
+from keras import backend as K
 
 IMG_HEIGHT = 256
 IMG_WIDTH = 256
@@ -128,6 +137,7 @@ drop5 = Dropout(0.5)(conv5)
 
 up6 = Conv2D(512, 2, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(UpSampling2D(size = (2,2))(drop5))
 merge6 = merge([drop4,up6], mode = 'concat', concat_axis = 3)
+
 conv6 = Conv2D(512, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge6)
 conv6 = Conv2D(512, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv6)
 
@@ -157,3 +167,6 @@ model.outputHeight = outputHeight
 
 model.summary()
 
+
+
+#%%
