@@ -234,8 +234,6 @@ test_image_generator = test_image_datagen.flow_from_directory(
 preds_test = model_p.predict(test_image_generator, verbose=1)
 '''
 
-
-
 #%%
 
 
